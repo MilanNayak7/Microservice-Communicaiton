@@ -7,6 +7,7 @@ import com.example.employeeservice.entity.Employee;
 import com.example.employeeservice.exception.ResourceNotFoundException;
 import com.example.employeeservice.repository.EmployeeRepository;
 import com.example.employeeservice.service.EmployeeService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         return returnedEmployee;
     }
 
+
+
+    @CircuitBreaker(name="${spring.application.name}",fallbackMethod ="getDefaultDepartment")
     @Override
     public APIResponseDto findEmployeeById(Long id) {
         Employee employee = employeeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Employee", "id", id));
@@ -36,6 +40,25 @@ public class EmployeeServiceImpl implements EmployeeService {
         DepartmentDto departmentById = apiClient.getDepartmentById(employee.getDepartmentCode());
         APIResponseDto apiResponseDto = new APIResponseDto();
         apiResponseDto.setDepartment(departmentById);
+        apiResponseDto.setEmployee(employeeDto);
+
+        return apiResponseDto;
+    }
+
+
+    public APIResponseDto getDefaultDepartment(Long id,Exception e) {
+
+        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Employee", "id", id));
+        DepartmentDto departmentDto = new DepartmentDto();
+        departmentDto.setDepartmentName("Test Dept");
+        departmentDto.setDepartmentCode("Test");
+        departmentDto.setDepartmentDescription("Research nd development");
+
+
+        EmployeeDto employeeDto = modelMapper.map(employee,EmployeeDto.class);
+
+        APIResponseDto apiResponseDto = new APIResponseDto();
+        apiResponseDto.setDepartment(departmentDto);
         apiResponseDto.setEmployee(employeeDto);
 
         return apiResponseDto;
