@@ -3,6 +3,7 @@ package com.example.employeeservice.service.impl;
 import com.example.employeeservice.dto.APIResponseDto;
 import com.example.employeeservice.dto.DepartmentDto;
 import com.example.employeeservice.dto.EmployeeDto;
+import com.example.employeeservice.dto.OrganizationDTO;
 import com.example.employeeservice.entity.Employee;
 import com.example.employeeservice.exception.ResourceNotFoundException;
 import com.example.employeeservice.repository.EmployeeRepository;
@@ -21,6 +22,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     ModelMapper modelMapper = new ModelMapper();
 
    private APIClient apiClient;
+   private APIClientOrganization apiClientOrganization;
     @Override
     public EmployeeDto saveEmployee(EmployeeDto employeeDto) {
         Employee mappedEmployee = modelMapper.map(employeeDto, Employee.class);
@@ -38,12 +40,16 @@ public class EmployeeServiceImpl implements EmployeeService {
         EmployeeDto employeeDto =  modelMapper.map(employee,EmployeeDto.class);
 
         DepartmentDto departmentById = apiClient.getDepartmentById(employee.getDepartmentCode());
+        OrganizationDTO byOrganizationCode = apiClientOrganization.getByOrganizationCode(employee.getOrganizationCode());
+
         APIResponseDto apiResponseDto = new APIResponseDto();
         apiResponseDto.setDepartment(departmentById);
         apiResponseDto.setEmployee(employeeDto);
+        apiResponseDto.setOrganizationDTO(byOrganizationCode);
 
         return apiResponseDto;
     }
+
 
 
     public APIResponseDto getDefaultDepartment(Long id,Exception e) {
